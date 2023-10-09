@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokemonAPI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style> 
+    /* code for making an image as background and transparent */
+        .pokemon-logo {
+            background-image: url(https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/7c1cfff2-db8d-44cd-8a13-cb2a4162fae6/dd2zouo-047f7b3f-b895-43ac-82a4-abb6ca12c52a.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzdjMWNmZmYyLWRiOGQtNDRjZC04YTEzLWNiMmE0MTYyZmFlNlwvZGQyem91by0wNDdmN2IzZi1iODk1LTQzYWMtODJhNC1hYmI2Y2ExMmM1MmEucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.EFI6YQ0acRLpYHzupMAxV_N4KMcpNWT-_3RJ4TV-4eU); 
+            background-size: cover;
+            opacity: 0.5; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class=" ">
+    <div class="pokemon-logo"></div>
+    <div id="app" class="container mx-auto mt-8 p-4 relative">
+        <h1 class="text-3xl font-bold mb-4">Find Pokemons!</h1>
+        <div class="flex mb-4 ">
+            <!-- calls the searchQuery from the JS below  -->
+            <input v-model="searchQuery" @input="getPokemon" class="w-64 p-2 rounded-l focus:outline-none text bg-white" placeholder="Get Pokemon">
+        </div>
+        <div v-if="loading" class="text-center">
+            Loading...
+        </div>
+        <div v-else>
+            <div v-if="pokemon" class="bg-white rounded-lg p-4">
+                <h2 class="text-2xl font-bold">{{ pokemon.name }}</h2> 
+                <img :src="pokemon.imageUrl" :alt="pokemon.name" class="mx-auto mt-4" style="max-width: 400px; float: left">
+                <h3 class="text-xl font-bold mt-4">Characteristics:</h3>
+                <ul>
+                    <li v-for="characteristic in pokemon.characteristics" :key="characteristic">{{ characteristic }}</li>
+                </ul>
+                <h3 class="text-xl font-bold mt-4">Abilities:</h3>
+                <ul>
+                    <li v-for="ability in pokemon.abilities" :key="ability">{{ ability }}</li>
+                </ul>
+                <h3 class="text-xl font-bold mt-4">Types:</h3>
+                <ul>
+                    <li v-for="type in pokemon.types" :key="type">{{ type }}</li>
+                </ul>
+                
+            </div>
+            <div v-else class="bg-white rounded-lg p-4">
+                Who's that Pokemon!!!
+                
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        const app = Vue.createApp({
+            data() {
+                return {
+                    searchQuery: '',
+                    loading: false,
+                    pokemon: null,
+                    offset: 0,
+                };
+            },
+            computed: {
+                pokedexApiUrl() {
+                    return `https://pokeapi.co/api/v2/pokemon/${this.searchQuery.toLowerCase()}`;
+                },
+            },
+            methods: {
+                async getPokemon() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(this.pokedexApiUrl);
+                        if (!response.ok) {
+                            throw new Error(`ERROR! Status: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        this.pokemon = {
+                            name: data.name,
+                            imageUrl: data.sprites.other['official-artwork'].front_default,
+                            characteristics: data.types.map(type => type.type.name),
+                            abilities: data.abilities.map(ability => ability.ability.name),
+                            types: data.types.map(type => type.type.name),
+                        };
+                    } catch (error) {
+                        console.error(error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+            },
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
